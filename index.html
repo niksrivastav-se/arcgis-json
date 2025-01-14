@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArcGIS Table Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        #download-btn {
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #download-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>ArcGIS Table Data</h1>
+    <button id="download-btn">Download CSV</button>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>Object ID</th>
+                <th>Delivering Plant</th>
+                <th>MBG Width</th>
+                <th>MBG Length</th>
+                <th>MBG APODX1</th>
+                <th>MBG APODY1</th>
+                <th>MBG APODX2</th>
+                <th>MBG APODY2</th>
+                <th>MBG Orientation</th>
+                <th>Shape Length</th>
+                <th>Shape Area</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const url = "gisjson.txt"; // Replace with your URL
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // Log the data to see its structure
+                    if (data.features && Array.isArray(data.features)) {
+                        const tableBody = document.getElementById("data-table").getElementsByTagName("tbody")[0];
+                        data.features.forEach(feature => {
+                            const row = tableBody.insertRow();
+                            const attributes = feature.attributes;
+                            row.insertCell(0).textContent = attributes.objectid || '';
+                            row.insertCell(1).textContent = attributes.deliveringplant || '';
+                            row.insertCell(2).textContent = attributes.mbg_width || '';
+                            row.insertCell(3).textContent = attributes.mbg_length || '';
+                            row.insertCell(4).textContent = attributes.mbg_apodx1 || '';
+                            row.insertCell(5).textContent = attributes.mbg_apody1 || '';
+                            row.insertCell(6).textContent = attributes.mbg_apodx2 || '';
+                            row.insertCell(7).textContent = attributes.mbg_apody2 || '';
+                            row.insertCell(8).textContent = attributes.mbg_orientation || '';
+                            row.insertCell(9).textContent = attributes.SHAPE__Length || '';
+                            row.insertCell(10).textContent = attributes.SHAPE__Area || '';
+                        });
+                    } else {
+                        console.error("Data format is incorrect:", data);
+                    }
+                })
+                .catch(error => console.error("Error fetching data:", error));
+
+            document.getElementById("download-btn").addEventListener("click", function() {
+                const table = document.getElementById("data-table");
+                let csvContent = "data:text/csv;charset=utf-8,";
+                const rows = table.querySelectorAll("tr");
+
+                rows.forEach(row => {
+                    const cols = row.querySelectorAll("th, td");
+                    const rowData = Array.from(cols).map(col => col.textContent).join(",");
+                    csvContent += rowData + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "arcgis_table_data.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+</html>
+
